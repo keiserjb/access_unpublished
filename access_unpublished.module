@@ -1,0 +1,146 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * This module is used to allow access to unpublished nodes
+ *
+ * After setting the correct permissions this module provides a direct access
+ * URL for unpublished content. Using the provided URL this content can be
+ * viewed by any role (including anonymous user) if this is specified in the
+ * permissions.
+ *
+ * The URL containing the hash value is generated using the node id combined
+ * with a private key.
+ */
+
+define("ACCESS_UNPUBLISHED_DEFAULTPRIVATEKEY", "abcdef");
+define("ACCESS_UNPUBLISHED_QUERYSTRING", "hash");
+
+/**
+ * Implements hook_menu().
+ */
+function access_unpublished_menu() {
+  $items = array();
+  $items['admin/settings/access_unpublished'] = array(
+    'title' => 'Access unpublished',
+    'description' => 'Configure settings used to access unpublished content.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('access_unpublished_admin'),
+    'access arguments' => array('access administration pages'),
+    'access callback' => 'user_access',
+    'access arguments' => array('administer permissions'),
+    'type' => MENU_NORMAL_ITEM
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_menu_alter().
+ */
+function access_unpublished_menu_alter(&$items) {
+  if (function_exists('_access_unpublished_node_access')) {
+    $items['node/%node']['access callback'] = '_access_unpublished_node_access';
+  }
+}
+
+/**
+ * Implements hook_help().
+ */
+function access_unpublished_help($path, $arg) {
+  $output = '';
+  switch ($path) {
+    case "admin/settings/access_unpublished":
+      $output = '<p>' . t('Access unpublished creates a hash value for unpublished nodes, to enable users the view the node, even if they do not have the correct privileges. After setting the correct permissions this module provides a direct access URL for unpublished content. Using the provided URL this content can be viewed by any role (including anonymous user) if this is specified in the !permissions of your site.', array('!permissions' => l(t('permissions'), 'admin/user/permissions'))) . '</p>';
+      $output .= '<p>' . t('The URL containing the hash value is generated using the node id combined with the private key you specify here. This URL is displayed after saving the node and when the author views the node.') . '</p>';
+      $output .= '<p>' . t("NOTE: Changing the private key will render URL's that were generated with the old private key useless.") . '</p>';
+      break;
+  }
+  return $output;
+}
+
+/**
+ * Implements hook_perm().
+ */
+function access_unpublished_perm() {
+  foreach (node_get_types() as $type => $name) {
+    $perms[] = 'Generate hashed URL when saving an unpublished ' . $type . ' node';
+    $perms[] = 'Allow access to unpublished ' . $type . ' nodes if hash is provided';
+  }
+  return $perms;
+}
+
+/**
+ * Implements hook_nodeapi().
+ */
+function access_unpublished_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
+  global $user;
+  switch ($op) {
+    case 'view':
+      //When saving an unpublished node display the URL with the created hash
+      //so that the author can provide direct access to the iunpublished node.
+      //Only display the direct URL for accessing unpublished nodes when the
+      //user is allowed to do so in the permissions, and the user is not
+      //already using an URL with the hash.
+      if ($node->status == 0) {
+        if (user_access('Generate hashed URL when saving an unpublished ' . $node->type . ' node') && ($user->uid == $node->uid) && (user_access('Allow access to unpublished ' . $node->type . ' nodes if hash is provided')) && ($_GET[ACCESS_UNPUBLISHED_QUERYSTRING] == "") ) {
+          drupal_set_message(t('Access unpublished') . ': <a href="' . access_unpublished_get_access_url($node) . '">' . access_unpublished_get_access_url($node) . '</a>');
+        }
+      }
+      break;
+  }
+}
+
+/**
+ * Create administration page.
+ */
+function access_unpublished_admin() {
+  $form = array();
+  $form['access_unpublished_privatekey'] = array(
+    '#type' => 'textfield',
+    '#size' => '30',
+    '#title' => t('Private key'),
+    '#description' => t('The private key is used for creating the hash value, which can be used to allow access to unpublished nodes.'),
+    '#default_value' => variable_get('access_unpublished_privatekey', ACCESS_UNPUBLISHED_DEFAULTPRIVATEKEY),
+  );
+  return system_settings_form($form);
+}
+
+/**
+ * Generate url to access the unpublished node.
+ */
+function access_unpublished_get_access_url($node) {
+  if ($node->path != "") {
+    return url($node->path, array('query' => ACCESS_UNPUBLISHED_QUERYSTRING . '=' . _access_unpublished_get_hash($node->nid), 'absolute' => TRUE));
+  }
+  else {
+    return url('node/' . $node->nid, array('query' => ACCESS_UNPUBLISHED_QUERYSTRING . '=' . _access_unpublished_get_hash($node->nid), 'absolute' => TRUE));
+  }
+}
+
+/**
+ * Create the hash to be used in the URL to gain access to the unpublished
+ * node. The hash value is created by combining the node ID with the private
+ * key supplied in the settings.
+ */
+function _access_unpublished_get_hash($nid) {
+  return md5($nid . variable_get('access_unpublished_privatekey', ACCESS_UNPUBLISHED_DEFAULTPRIVATEKEY));
+}
+
+/**
+ * Returns true if the user has 'view unpublished ??? content' or if they
+ * have the permission corresponding to the node's content type.
+ */
+function _access_unpublished_node_access($op, $node) {
+  if ($node->status == 0) {
+    if (user_access('Allow access to unpublished ' . $node->type . ' nodes if hash is provided')) {
+      if ($_GET[ACCESS_UNPUBLISHED_QUERYSTRING] == _access_unpublished_get_hash($node->nid)) {
+        //Allow for viewing of the unpublished node.
+        return TRUE;
+      }
+    }
+  }
+  //If none of the above conditions were satisfied, then use normal node_access.
+  return node_access('view', $node);
+}
+
