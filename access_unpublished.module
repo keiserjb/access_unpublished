@@ -1,5 +1,4 @@
 <?php
-// $Id$
 
 /**
  * @file
@@ -14,6 +13,10 @@
  * with a private key.
  */
 
+/**
+ * The ACCESS_UNPUBLISHED_DEFAULTPRIVATEKEY is only used when the value
+ * generated during the module install is deleted manually.
+ */
 define("ACCESS_UNPUBLISHED_DEFAULTPRIVATEKEY", "abcdef");
 define("ACCESS_UNPUBLISHED_QUERYSTRING", "hash");
 
@@ -84,7 +87,7 @@ function access_unpublished_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
       //already using an URL with the hash.
       if ($node->status == 0) {
         if (user_access('Generate hashed URL when saving an unpublished ' . $node->type . ' node') && ($user->uid == $node->uid) && (user_access('Allow access to unpublished ' . $node->type . ' nodes if hash is provided')) && ($_GET[ACCESS_UNPUBLISHED_QUERYSTRING] == "") ) {
-          drupal_set_message(t('Access unpublished') . ': <a href="' . access_unpublished_get_access_url($node) . '">' . access_unpublished_get_access_url($node) . '</a>');
+          drupal_set_message(t('URL to access this unpublished node: <a href="@unpublished_url">@unpublished_url</a>', array('@unpublished_url' => access_unpublished_get_access_url($node))));
         }
       }
       break;

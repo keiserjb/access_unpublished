@@ -1,0 +1,24 @@
+<?php
+
+/**
+ * @file
+ * Create a privatekey on install and remove the key when the module
+ * is removed. The private key can be changed in the module settings.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function access_unpublished_install() {
+  watchdog('access_unpublished', 'Generating private key');
+  variable_set('access_unpublished_privatekey', uniqid());
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function access_unpublished_uninstall() {
+  watchdog('access_unpublished', 'Removing private key: '. variable_get('access_unpublished_privatekey'));
+  variable_del('access_unpublished_privatekey');
+}
+
