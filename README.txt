@@ -13,7 +13,7 @@ module unpublished nodes should be considered more or less public.
 
 Usage:
 ------
-After installing and activating the 'Access Unpublished' module you should 
+After installing and activating the 'Access unpublished' module you should 
 first update the settings for the module.
   admin/settings/access_unpublished
 You will need to specify a 'Private key' which will be used to create the
