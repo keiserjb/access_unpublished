@@ -1,0 +1,90 @@
+# $Id$
+#
+# LANGUAGE translation of Drupal (general)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  access_unpublished.module: n/a
+#  access_unpublished.info: n/a
+#  access_unpublished.install: n/a
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"POT-Creation-Date: 2011-04-11 11:12+0100\n"
+"PO-Revision-Date: YYYY-mm-DD HH:MM+ZZZZ\n"
+"Last-Translator: NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <EMAIL@ADDRESS>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: access_unpublished.module:57
+msgid "Access unpublished creates a hash value for unpublished nodes, to enable users the view the node, even if they do not have the correct privileges. After setting the correct permissions this module provides a direct access URL for unpublished content. Using the provided URL this content can be viewed by any role (including anonymous user) if this is specified in the !permissions of your site."
+msgstr ""
+
+#: access_unpublished.module:57
+msgid "permissions"
+msgstr ""
+
+#: access_unpublished.module:58
+msgid "The URL containing the hash value is generated using the node id combined with the private key you specify here. This URL is displayed after saving the node and when the author views the node."
+msgstr ""
+
+#: access_unpublished.module:59
+msgid "NOTE: Changing the private key will render URL's that were generated with the old private key useless."
+msgstr ""
+
+#: access_unpublished.module:90
+msgid "URL to access this unpublished node: <a href=\"@unpublished_url\">@unpublished_url</a>"
+msgstr ""
+
+#: access_unpublished.module:105
+msgid "Private key"
+msgstr ""
+
+#: access_unpublished.module:106
+msgid "The private key is used for creating the hash value, which can be used to allow access to unpublished nodes."
+msgstr ""
+
+#: access_unpublished.module:70
+msgid "Generate hashed URL when saving an unpublished "
+msgstr ""
+
+#: access_unpublished.module:70
+msgid " node"
+msgstr ""
+
+#: access_unpublished.module:71
+msgid "Allow access to unpublished "
+msgstr ""
+
+#: access_unpublished.module:71
+msgid " nodes if hash is provided"
+msgstr ""
+
+#: access_unpublished.module:29 access_unpublished.info:0
+msgid "Access unpublished"
+msgstr ""
+
+#: access_unpublished.module:30
+msgid "Configure settings used to access unpublished content."
+msgstr ""
+
+#: access_unpublished.install:13;21
+msgid "access_unpublished"
+msgstr ""
+
+#: access_unpublished.install:13
+msgid "Generating private key"
+msgstr ""
+
+#: access_unpublished.install:21
+msgid "Removing private key: @key"
+msgstr ""
+
+#: access_unpublished.info:0
+msgid "Module to give access to unpublished nodes, using a hash to identify users that should be able to view the node."
+msgstr ""
+
