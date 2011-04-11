@@ -81,7 +81,7 @@ function access_unpublished_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
   switch ($op) {
     case 'view':
       //When saving an unpublished node display the URL with the created hash
-      //so that the author can provide direct access to the iunpublished node.
+      //so that the author can provide direct access to the unpublished node.
       //Only display the direct URL for accessing unpublished nodes when the
       //user is allowed to do so in the permissions, and the user is not
       //already using an URL with the hash.

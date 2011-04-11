@@ -18,7 +18,7 @@ function access_unpublished_install() {
  * Implements hook_uninstall().
  */
 function access_unpublished_uninstall() {
-  watchdog('access_unpublished', 'Removing private key: '. variable_get('access_unpublished_privatekey'));
+  watchdog('access_unpublished', 'Removing private key: @key', array('@key' => variable_get('access_unpublished_privatekey')));
   variable_del('access_unpublished_privatekey');
 }
 
