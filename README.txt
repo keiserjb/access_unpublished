@@ -17,7 +17,8 @@ After installing and activating the 'Access unpublished' module you should
 first update the settings for the module.
   admin/settings/access_unpublished
 You will need to specify a 'Private key' which will be used to create the
-unique hash to access unpublished nodes.
+unique hash to access unpublished nodes. If you do not specify a private key
+one will be generated when you install the module.
 
 Afterwards you will need to set the module permissions
   admin/user/permissions

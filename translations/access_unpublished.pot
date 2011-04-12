@@ -48,22 +48,6 @@ msgstr ""
 msgid "The private key is used for creating the hash value, which can be used to allow access to unpublished nodes."
 msgstr ""
 
-#: access_unpublished.module:70
-msgid "Generate hashed URL when saving an unpublished "
-msgstr ""
-
-#: access_unpublished.module:70
-msgid " node"
-msgstr ""
-
-#: access_unpublished.module:71
-msgid "Allow access to unpublished "
-msgstr ""
-
-#: access_unpublished.module:71
-msgid " nodes if hash is provided"
-msgstr ""
-
 #: access_unpublished.module:29 access_unpublished.info:0
 msgid "Access unpublished"
 msgstr ""
