@@ -1,7 +1,7 @@
 # $Id$
 #
 # Spanish translation of Drupal (general)
-# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Copyright 2011 NAME <EMAIL@ADDRESS>
 # Generated from files:
 #  access_unpublished.module: n/a
 #  access_unpublished.info: n/a
