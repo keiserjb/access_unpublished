@@ -14,13 +14,6 @@
  */
 
 /**
- * The ACCESS_UNPUBLISHED_DEFAULTPRIVATEKEY is only used when the value
- * generated during the module install is deleted manually.
- */
-define("ACCESS_UNPUBLISHED_DEFAULTPRIVATEKEY", "abcdef");
-define("ACCESS_UNPUBLISHED_DEFAULTQUERYSTRING", "hash");
-
-/**
  * Implements hook_menu().
  */
 function access_unpublished_menu() {
@@ -104,7 +97,8 @@ function access_unpublished_admin() {
     '#size' => '30',
     '#title' => t('Private key'),
     '#description' => t('The private key is used for creating the hash value, which can be used to allow access to unpublished nodes.'),
-    '#default_value' => variable_get('access_unpublished_privatekey', ACCESS_UNPUBLISHED_DEFAULTPRIVATEKEY),
+    '#default_value' => variable_get('access_unpublished_privatekey', NULL),
+    '#required' => TRUE,
   );
   $form['access_unpublished_querystring'] = array(
     '#type' => 'textfield',
@@ -112,6 +106,7 @@ function access_unpublished_admin() {
     '#title' => t('Query string'),
     '#description' => t('The label used in the URL to identify the hash value.'),
     '#default_value' => _access_unpublished_get_querystring(),
+    '#required' => TRUE,
   );
   return system_settings_form($form);
 }
@@ -134,14 +129,14 @@ function access_unpublished_get_access_url($node) {
  * key supplied in the settings.
  */
 function _access_unpublished_get_hash($nid) {
-  return md5($nid . variable_get('access_unpublished_privatekey', ACCESS_UNPUBLISHED_DEFAULTPRIVATEKEY));
+  return md5($nid . variable_get('access_unpublished_privatekey', NULL));
 }
 
 /**
  * Return the value of the querystring
  */
 function _access_unpublished_get_querystring() {
-  return check_plain(variable_get('access_unpublished_querystring', ACCESS_UNPUBLISHED_DEFAULTQUERYSTRING));
+  return check_plain(variable_get('access_unpublished_querystring', NULL));
 }
 
 /**
@@ -149,11 +144,11 @@ function _access_unpublished_get_querystring() {
  * have the permission corresponding to the node's content type.
  */
 function _access_unpublished_node_access($op, $node) {
-  //Check if the not is unpublished
+  //Check if the node is not published.
   if ($node->status == 0) {
-    //Check the permissions
+    //Check the permissions.
     if (user_access('Allow access to unpublished ' . $node->type . ' nodes if hash is provided')) {
-      //Check if the hash value is correct
+      //Check if the hash value is correct.
       if ($_GET[_access_unpublished_get_querystring()] == _access_unpublished_get_hash($node->nid)) {
         //Allow for viewing of the unpublished node.
         return TRUE;

@@ -22,11 +22,11 @@ function access_unpublished_install() {
 function access_unpublished_uninstall() {
   //Display the old key value in the message log, so that if you need to
   //recover the key value you will be able to find it in the logs
-  watchdog('access_unpublished', 'Removing private key: @key', array('@key' => variable_get('access_unpublished_privatekey', "abcdef")));
+  watchdog('access_unpublished', 'Removing private key: @key', array('@key' => variable_get('access_unpublished_privatekey', NULL)));
   variable_del('access_unpublished_privatekey');
   //Display the old query string value in the message log, so that if you
   //need to recover the value you will be able to find it in the logs
-  watchdog('access_unpublished', 'Removing query string: @querystring', array('@querystring' => variable_get('access_unpublished_querystring', "hash")));
+  watchdog('access_unpublished', 'Removing query string: @querystring', array('@querystring' => variable_get('access_unpublished_querystring', NULL)));
   variable_del('access_unpublished_querystring');
 }
 
