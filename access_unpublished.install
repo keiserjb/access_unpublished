@@ -7,13 +7,19 @@
  */
 
 /**
+ * The ACCESS_UNPUBLISHED_DEFAULTQUERYSTRING is only used when the module
+ * is installed to set the default value
+ */
+define("ACCESS_UNPUBLISHED_DEFAULTQUERYSTRING", "hash");
+
+/**
  * Implements hook_install().
  */
 function access_unpublished_install() {
   watchdog('access_unpublished', 'Generating default private key');
   variable_set('access_unpublished_privatekey', uniqid());
   watchdog('access_unpublished', 'Generating default query string');
-  variable_set('access_unpublished_querystring', "hash");
+  variable_set('access_unpublished_querystring', ACCESS_UNPUBLISHED_DEFAULTQUERYSTRING);
 }
 
 /**
