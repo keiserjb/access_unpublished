@@ -1,3 +1,6 @@
-name = Access unpublished
-description = Module to provide access to unpublished nodes, using a hash to identify users that should be able to view the node. 
-core = "6.x"
+name = Access Unpublished
+description = Grants access to view unpublished content to anyone who has a unique URL and appropriate permissions.
+core = 7.x
+configure = admin/config/content/access_unpublished
+
+stylesheets[all][] = css/access_unpublished.css

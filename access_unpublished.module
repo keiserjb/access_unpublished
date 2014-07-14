@@ -1,161 +1,144 @@
 <?php
-
 /**
  * @file
- * This module is used to allow access to unpublished nodes
+ * Drupal module: Access unpublished.
  *
- * After setting the correct permissions this module provides a direct access
- * URL for unpublished content. Using the provided URL this content can be
- * viewed by any role (including anonymous user) if this is specified in the
- * permissions.
+ * Access unpublished module allows view unpublished content to anyone who has
+ * a unique URL and appropriate permissions. 
  *
- * The URL containing the hash value is generated using the node id combined
- * with a private key.
+ * URL hash parameter can be configured.
  */
 
 /**
  * Implements hook_menu().
  */
 function access_unpublished_menu() {
-  $items = array();
-  $items['admin/settings/access_unpublished'] = array(
+  // This provides hash URL parameter setting.
+  $items['admin/config/content/access_unpublished'] = array(
     'title' => 'Access unpublished',
-    'description' => 'Configure settings used to access unpublished content.',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('access_unpublished_admin'),
-    'access arguments' => array('access administration pages'),
-    'access callback' => 'user_access',
-    'access arguments' => array('administer permissions'),
-    'type' => MENU_NORMAL_ITEM
+    'page arguments' => array('access_unpublished_url_param_form'),
+    'access arguments' => array('access unpublished configuration'),
+    'file' => 'access_unpublished.admin.inc',
+    'type' => MENU_NORMAL_ITEM,
   );
   return $items;
 }
 
 /**
- * Implements hook_menu_alter().
+ * Implements hook_permission().
  */
-function access_unpublished_menu_alter(&$items) {
-  if (function_exists('_access_unpublished_node_access')) {
-    $items['node/%node']['access callback'] = '_access_unpublished_node_access';
-  }
+function access_unpublished_permission() {
+
+  $permissions['access unpublished view unpublished node'] = array(
+    'title' => t('View unpublished contents'),
+    'description' => t('Allow users to view unpublished contents 
+      with unique key in URL path'),
+  );
+  $permissions['access unpublished view hashkey'] = array(
+    'title' => t('View hash key link to unpublished contents'),
+    'description' => t('Allow users to view link with hash key 
+      for view unpublished contents'),
+  );
+  $permissions['access unpublished configuration'] = array(
+    'title' => t('Access unpublished module configuration'),
+    'description' => t('Allow users to configure module'),
+  );
+  return $permissions;
 }
 
 /**
- * Implements hook_help().
+ * Implements hook_node_view().
  */
-function access_unpublished_help($path, $arg) {
-  $output = '';
-  switch ($path) {
-    case "admin/settings/access_unpublished":
-      $output = '<p>' . t('Access unpublished creates a hash value for unpublished nodes, to enable users the view the node, even if they do not have the correct privileges. After setting the correct permissions this module provides a direct access URL for unpublished content. Using the provided URL this content can be viewed by any role (including anonymous user) if this is specified in the !permissions of your site.', array('!permissions' => l(t('permissions'), 'admin/user/permissions'))) . '</p>';
-      $output .= '<p>' . t('The URL containing the hash value is generated using the node id combined with the private key you specify here. This URL is displayed after saving the node and when the author views the node.') . '</p>';
-      $output .= '<p>' . t("NOTE: Changing the private key and/or the query string will render URL's that were generated before useless.") . '</p>';
-      break;
-  }
-  return $output;
-}
-
-/**
- * Implements hook_perm().
- */
-function access_unpublished_perm() {
-  foreach (node_get_types() as $type => $name) {
-    $perms[] = 'Generate hashed URL when saving an unpublished ' . $type . ' node';
-    $perms[] = 'Allow access to unpublished ' . $type . ' nodes if hash is provided';
-  }
-  return $perms;
-}
-
-/**
- * Implements hook_nodeapi().
- */
-function access_unpublished_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
-  global $user;
-  switch ($op) {
-    case 'view':
-      //When saving an unpublished node display the URL with the created hash
-      //so that the author can provide direct access to the unpublished node.
-      //Only display the direct URL for accessing unpublished nodes when the
-      //user is allowed to do so in the permissions, and the user is not
-      //already using an URL with the hash.
-      if ($node->status == 0) {
-        if (user_access('Generate hashed URL when saving an unpublished ' . $node->type . ' node') && ($user->uid == $node->uid) && (user_access('Allow access to unpublished ' . $node->type . ' nodes if hash is provided')) && ($_GET[_access_unpublished_get_querystring()] == "") ) {
-          drupal_set_message(t('URL to access this unpublished node: <a href="@unpublished_url">@unpublished_url</a>', array('@unpublished_url' => access_unpublished_get_access_url($node))));
-        }
+function access_unpublished_node_view($node) {
+  // Test publish and view node status.
+  // Only unpublished nodes in full page view are affected.
+  if ($node->status == NODE_NOT_PUBLISHED && node_is_page($node)) {
+    // Test user permission.
+    if (user_access('access unpublished view hashkey')) {
+      // Construct URL link.
+      $au_url_key = variable_get('access_unpublished_url_key', 'hash');
+      $au_link = l(t("hashed link"), 'node/' . $node->nid,
+        array(
+          'query' => array(
+            $au_url_key => access_unpublished_get_hash_from_nodeid($node->nid),
+          ),
+          'attributes' => array(
+            // We need a extra class for link with class="active" from l()
+            'class' => array('access_unpublished_link'),
+          ),
+        )
+      );
+      $au_link_text = t("You can use !link to view this unpublished node.",
+        array('!link' => $au_link));
+      if (variable_get('access_unpublished_display_link_in_drupal_message', 1)) {
+        // Show link in Drupal message.
+        drupal_set_message($au_link_text, 'status');
       }
-      break;
-  }
-}
-
-/**
- * Create administration page.
- */
-function access_unpublished_admin() {
-  $form = array();
-  $form['access_unpublished_privatekey'] = array(
-    '#type' => 'textfield',
-    '#size' => '30',
-    '#title' => t('Private key'),
-    '#description' => t('The private key is used for creating the hash value, which can be used to allow access to unpublished nodes.'),
-    '#default_value' => variable_get('access_unpublished_privatekey', NULL),
-    '#required' => TRUE,
-  );
-  $form['access_unpublished_querystring'] = array(
-    '#type' => 'textfield',
-    '#size' => '10',
-    '#title' => t('Query string'),
-    '#description' => t('The label used in the URL to identify the hash value.'),
-    '#default_value' => _access_unpublished_get_querystring(),
-    '#required' => TRUE,
-  );
-  return system_settings_form($form);
-}
-
-/**
- * Generate url to access the unpublished node.
- */
-function access_unpublished_get_access_url($node) {
-  if ($node->path != "") {
-    return url($node->path, array('query' => _access_unpublished_get_querystring() . '=' . _access_unpublished_get_hash($node->nid), 'absolute' => TRUE));
-  }
-  else {
-    return url('node/' . $node->nid, array('query' => _access_unpublished_get_querystring() . '=' . _access_unpublished_get_hash($node->nid), 'absolute' => TRUE));
-  }
-}
-
-/**
- * Create the hash to be used in the URL to gain access to the unpublished
- * node. The hash value is created by combining the node ID with the private
- * key supplied in the settings.
- */
-function _access_unpublished_get_hash($nid) {
-  return md5($nid . variable_get('access_unpublished_privatekey', NULL));
-}
-
-/**
- * Return the value of the querystring
- */
-function _access_unpublished_get_querystring() {
-  return check_plain(variable_get('access_unpublished_querystring', NULL));
-}
-
-/**
- * Returns true if the user has 'view unpublished ??? content' or if they
- * have the permission corresponding to the node's content type.
- */
-function _access_unpublished_node_access($op, $node) {
-  //Check if the node is not published.
-  if ($node->status == 0) {
-    //Check the permissions.
-    if (user_access('Allow access to unpublished ' . $node->type . ' nodes if hash is provided')) {
-      //Check if the hash value is correct.
-      if ($_GET[_access_unpublished_get_querystring()] == _access_unpublished_get_hash($node->nid)) {
-        //Allow for viewing of the unpublished node.
-        return TRUE;
+      if (variable_get('access_unpublished_display_link_in_node_content', 1)) {
+        // Show link in extra renderable entry in node contents.
+        $node->content['access_unpublished_link'] = array(
+          '#access_unpublished_link' => $au_link_text,
+          '#weight' => 100,
+          '#theme' => 'access_unpublished_link',
+        );
       }
     }
   }
-  //If none of the above conditions were satisfied, then use normal node_access.
-  return node_access('view', $node);
 }
 
+/**
+ * Implements hook_node_access().
+ *
+ * Return NODE_ACCESS_ALLOW if url hash matches reference hash.
+ * In other cases return NODE_ACCESS_IGNORE to allow other modules
+ * or the node_access table to control access.
+ */
+function access_unpublished_node_access($node, $op) {
+  if ($op == 'view' && isset($node->nid) 
+    && $node->status == NODE_NOT_PUBLISHED) {
+    // Check user permission.
+    if (user_access('access unpublished view unpublished node')) {
+      $au_url_key = variable_get('access_unpublished_url_key', 'hash');
+      // Check hash key in url.
+      $url_query = drupal_get_query_parameters();
+      if (isset($url_query[$au_url_key])) {
+        $url_hash = $url_query[$au_url_key];
+        // Generate reference hash.
+        $hash = access_unpublished_get_hash_from_nodeid($node->nid);
+        // Check hash match and return access state.
+        if ($url_hash == $hash) {
+          return NODE_ACCESS_ALLOW;
+        }
+      }
+    }
+  }
+  return NODE_ACCESS_IGNORE;
+}
+
+
+/**
+ * Generate hash from node ID.
+ *
+ * @param int $nid
+ *   Node ID, nid.
+ *
+ * @return string
+ *   Base-64 encoded, URL-safe sha-256 hash based on node ID.
+ */
+function access_unpublished_get_hash_from_nodeid($nid) {
+  return drupal_hash_base64(drupal_get_private_key() . $nid);
+}
+
+
+/**
+ * Implements hook_theme().
+ */
+function access_unpublished_theme() {
+  return array(
+    'access_unpublished_link' => array(
+      'variables' => array('access_unpublished_link' => NULL),
+      'template' => 'access-unpublished-link',
+    ),
+  );
+}

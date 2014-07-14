@@ -2,41 +2,44 @@ ACCESS UNPUBLISHED
 
 Description:
 ------------
-This module displays a message when you save a node that is not published.
-The message contains the URL to the node with a special hash value. This 
-URL can be used to allow access to the node to unauthorised users.
+Module grants access to view unpublished content to anyone who has 
+a unique URL and appropriate permissions. Visitor can be anonymous 
+or authenticated user with the user role.
 
-Note that everyone that obtains the correct URL will be able to access the
-unpublised node. This method of security through obfuscation should not be
-used for websites where security is really an issue. After installing this
-module unpublished nodes should be considered more or less public.
+When administrator or users with enabled privileges visit (or save) 
+unpublished node, can see link for direct view that unpublished content. 
+Unique URL link is displayed as Drupal message or in node content.
+   
+Administrator can enable view an unpublished node for any roles with 
+"View unpublished contents" permission. If it is set for anonymous users, 
+anyone who know the link with hash key, can view the unpublished node. 
+View only, not edit. 
+
+Default URL parameter is "hash" and can be changed on configuration page 
+for more security or customization.
+
+Module is useful for proofreaders, content checkers etc. 
+Webmaster does not need to create user accounts and can keep the website safer. 
+Each node has its own unique hash key (like Google Docs).
+
 
 Usage:
 ------
 After installing and activating the 'Access unpublished' module you should 
-first update the settings for the module.
-  admin/settings/access_unpublished
-You will need to specify a 'Private key' which will be used to create the
-unique hash to access unpublished nodes. If you do not specify a private key
-one will be generated when you install the module. You can also change the
-value of the 'Query string'. This is the value used in the URL to identify
-the generated hash.
+first configure the settings for the module.
+  admin/config/content/access_unpublished
+You can change the value of the 'URL hash parameter'. This is the value used 
+in the URL to identify the generated hash.
 
 Afterwards you will need to set the module permissions
-  admin/user/permissions
-For each node type available in your website you can activate the ability to
-access unpublished nodes. 
+  admin/people/permissions
 
-Author:
+
+Authors:
 -------
+Access unpublished module was created by 
 aberg (http://drupal.org/user/341657 http://leiden365.nl/blog)
-
-Code Contributions:
--------------------
-
-
-Resources used:
----------------
-http://drupal.org/node/611918
-http://thedrupalblog.com/creating-your-own-node-access-control-layer-using-hook-menu-alter
-
+for Drupal 6, where module development was stopped. Then martin_klima started
+independent module development for Drupal 7 named Hash access as sandbox 
+project. During review process Drupal team recomended build Hash access as 7.x
+development branch of Access unpublished. 
