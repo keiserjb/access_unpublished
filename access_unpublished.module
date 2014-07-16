@@ -4,7 +4,7 @@
  * Drupal module: Access unpublished.
  *
  * Access unpublished module allows view unpublished content to anyone who has
- * a unique URL and appropriate permissions. 
+ * a unique URL and appropriate permissions.
  *
  * URL hash parameter can be configured.
  */
@@ -95,7 +95,7 @@ function access_unpublished_node_view($node) {
  * or the node_access table to control access.
  */
 function access_unpublished_node_access($node, $op) {
-  if ($op == 'view' && isset($node->nid) 
+  if ($op == 'view' && isset($node->nid)
     && $node->status == NODE_NOT_PUBLISHED) {
     // Check user permission.
     if (user_access('access unpublished view unpublished node')) {

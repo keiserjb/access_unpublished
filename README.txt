@@ -41,5 +41,5 @@ Access unpublished module was created by
 aberg (http://drupal.org/user/341657 http://leiden365.nl/blog)
 for Drupal 6, where module development was stopped. Then martin_klima started
 independent module development for Drupal 7 named Hash access as sandbox 
-project. During review process Drupal team recomended build Hash access as 7.x
+project. During review process Drupal team recommended build Hash access as 7.x
 development branch of Access unpublished. 
