@@ -32,13 +32,11 @@ function access_unpublished_permission() {
 
   $permissions['access unpublished view unpublished node'] = array(
     'title' => t('View unpublished contents'),
-    'description' => t('Allow users to view unpublished contents 
-      with unique key in URL path'),
+    'description' => t('Allow users to view unpublished contents with unique key in URL path'),
   );
   $permissions['access unpublished view hashkey'] = array(
     'title' => t('View hash key link to unpublished contents'),
-    'description' => t('Allow users to view link with hash key 
-      for view unpublished contents'),
+    'description' => t('Allow users to view link with hash key for view unpublished contents'),
   );
   $permissions['access unpublished configuration'] = array(
     'title' => t('Access unpublished module configuration'),
