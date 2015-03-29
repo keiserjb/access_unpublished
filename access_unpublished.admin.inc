@@ -24,7 +24,7 @@ function access_unpublished_url_param_form($form) {
   );
   $form['access_unpublished_display_link']['access_unpublished_display_link_in_message'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Drupal message'),
+    '#title' => t('Backdrop message'),
     '#default_value' => config_get('access_unpublished.settings', 'access_unpublished_display_link_in_message'),
   );
   $form['access_unpublished_display_link']['access_unpublished_display_link_in_node_content'] = array(
