@@ -1,0 +1,6 @@
+{
+  "_config_name": "access_unpublished.settings",
+  "access_unpublished_display_link_in_message": 1,
+  "access_unpublished_display_link_in_node_content": 1,
+  "access_unpublished_url_key": "hash"
+}

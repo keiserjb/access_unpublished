@@ -11,7 +11,7 @@ function access_unpublished_url_param_form($form) {
   $form['access_unpublished_url_key'] = array(
     '#type' => 'textfield',
     '#title' => t('URL hash parameter'),
-    '#default_value' => variable_get('access_unpublished_url_key', 'hash'),
+    '#default_value' => config_get('access_unpublished.settings', 'access_unpublished_url_key'),
     '#description' => t('Set the URL parameter for hashed key, 
       for example: http://example.com/node/1?<strong>hash</strong>=abc..., 
       example.com/node/1?<strong>key</strong>=abc...'),
@@ -22,19 +22,26 @@ function access_unpublished_url_param_form($form) {
     '#type' => 'fieldset',
     '#title' => t('Display hashed link to unpublished node in:'),
   );
-  $form['access_unpublished_display_link']['access_unpublished_display_link_in_drupal_message'] = array(
+  $form['access_unpublished_display_link']['access_unpublished_display_link_in_message'] = array(
     '#type' => 'checkbox',
     '#title' => t('Drupal message'),
-    '#default_value' => variable_get('access_unpublished_display_link_in_drupal_message', 1),
+    '#default_value' => config_get('access_unpublished.settings', 'access_unpublished_display_link_in_message'),
   );
   $form['access_unpublished_display_link']['access_unpublished_display_link_in_node_content'] = array(
     '#type' => 'checkbox',
     '#title' => t('Node content'),
     '#description' => t('Use template access-unpublished-link.tpl.php 
       and access_unpublished.css for custom design.'),
-    '#default_value' => variable_get('access_unpublished_display_link_in_node_content', 1),
+    '#default_value' => config_get('access_unpublished.settings', 'access_unpublished_display_link_in_node_content'),
   );
-  return system_settings_form($form);
+  // Add a submit button
+  $form['actions']['#type'] = 'actions';
+  $form['actions']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save configuration'),
+  );
+
+  return $form;
 }
 
 /**
@@ -49,8 +56,20 @@ function access_unpublished_url_param_form_validate($form, &$form_state) {
     form_set_error('access_unpublished_url_key', t('Only ASCII characters can be used as URL key'));
   }
 
-  if (!$form_state['values']['access_unpublished_display_link_in_drupal_message']
+  if (!$form_state['values']['access_unpublished_display_link_in_message']
     && !$form_state['values']['access_unpublished_display_link_in_node_content']) {
     form_set_error('access_unpublished_display_link', t('At least one display option must be checked.'));
   }
+}
+
+/**
+ * Submit handler for module_settings_form().
+ */
+function access_unpublished_url_param_form_submit($form, &$form_state) {
+  $config = config('access_unpublished.settings');
+  $config->set('access_unpublished_url_key', $form_state['values']['access_unpublished_url_key']);
+  $config->set('access_unpublished_display_link_in_message', $form_state['values']['access_unpublished_display_link_in_message']);
+  $config->set('access_unpublished_display_link_in_node_content', $form_state['values']['access_unpublished_display_link_in_node_content']);
+  $config->save();
+  backdrop_set_message(t('The configuration options have been saved.'));
 }

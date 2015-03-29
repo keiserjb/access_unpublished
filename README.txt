@@ -8,7 +8,7 @@ or authenticated user with the user role.
 
 When administrator or users with enabled privileges visit (or save) 
 unpublished node, can see link for direct view that unpublished content. 
-Unique URL link is displayed as Drupal message or in node content.
+Unique URL link is displayed as Backdrop message or in node content.
    
 Administrator can enable view an unpublished node for any roles with 
 "View unpublished contents" permission. If it is set for anonymous users, 
@@ -42,4 +42,6 @@ aberg (http://drupal.org/user/341657 http://leiden365.nl/blog)
 for Drupal 6, where module development was stopped. Then martin_klima started
 independent module development for Drupal 7 named Hash access as sandbox 
 project. During review process Drupal team recommended build Hash access as 7.x
-development branch of Access unpublished. 
+development branch of Access unpublished.
+
+This module was converted to Backport CMS.
