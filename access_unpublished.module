@@ -16,7 +16,7 @@ function access_unpublished_menu() {
   // This provides hash URL parameter setting.
   $items['admin/config/content/access_unpublished'] = array(
     'title' => 'Access unpublished',
-    'page callback' => 'drupal_get_form',
+    'page callback' => 'backdrop_get_form',
     'page arguments' => array('access_unpublished_url_param_form'),
     'access arguments' => array('access unpublished configuration'),
     'file' => 'access_unpublished.admin.inc',
@@ -71,7 +71,7 @@ function access_unpublished_node_view($node) {
       $au_link_text = t("You can use !link to view this unpublished node.",
         array('!link' => $au_link));
       if (config_get('access_unpublished.settings', 'access_unpublished_display_link_in_message')) {
-        // Show link in Drupal message.
+        // Show link in frontend message.
         backdrop_set_message($au_link_text, 'status');
       }
       if (config_get('access_unpublished.settings', 'access_unpublished_display_link_in_node_content')) {
@@ -100,7 +100,7 @@ function access_unpublished_node_access($node, $op) {
     if (user_access('access unpublished view unpublished node')) {
       $au_url_key = config_get('access_unpublished.settings', 'access_unpublished_url_key');
       // Check hash key in url.
-      $url_query = drupal_get_query_parameters();
+      $url_query = backdrop_get_query_parameters();
       if (isset($url_query[$au_url_key])) {
         $url_hash = $url_query[$au_url_key];
         // Generate reference hash.
@@ -126,7 +126,7 @@ function access_unpublished_node_access($node, $op) {
  *   Base-64 encoded, URL-safe sha-256 hash based on node ID.
  */
 function access_unpublished_get_hash_from_nodeid($nid) {
-  return drupal_hash_base64(drupal_get_private_key() . $nid);
+  return backdrop_hash_base64(backdrop_get_private_key() . $nid);
 }
 
 

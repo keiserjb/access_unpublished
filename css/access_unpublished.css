@@ -3,7 +3,7 @@
  */
 
 /*
- We need overwrite color for an a.active selector in drupal message,
+ We need overwrite color for an a.active selector in frontend message,
   because it is black in system default and has the same color as other text
 */
 a.active.hash_access_link {
