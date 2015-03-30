@@ -1,6 +1,6 @@
 ACCESS UNPUBLISHED 
 
-Description:
+Description
 ------------
 Module grants access to view unpublished content to anyone who has 
 a unique URL and appropriate permissions. Visitor can be anonymous 
@@ -23,25 +23,41 @@ Webmaster does not need to create user accounts and can keep the website safer.
 Each node has its own unique hash key (like Google Docs).
 
 
-Usage:
-------
-After installing and activating the 'Access unpublished' module you should 
-first configure the settings for the module.
+Installation
+------------
+
+- Install this module using the official Backdrop CMS instructions at
+  https://backdropcms.org/guide/modules
+
+- After installing and activating the 'Access unpublished' module you should 
+  first configure the settings for the module at 
   admin/config/content/access_unpublished
-You can change the value of the 'URL hash parameter'. This is the value used 
-in the URL to identify the generated hash.
+- You can change the value of the 'URL hash parameter'. This is the value used 
+  in the URL to identify the generated hash.
 
-Afterwards you will need to set the module permissions
-  admin/people/permissions
+- Afterwards you will need to set the module permissions
+  at admin/people/permissions
 
 
-Authors:
+License
+-------
+
+This project is GPL v2 software. See the LICENSE.txt file in this directory for
+complete text.
+
+
+Current Maintainer
+-------------------
+- Martin Klíma (https://github.com/martin-klima/)
+
+
+Authors
 -------
 Access unpublished module was created by 
-aberg (http://drupal.org/user/341657 http://leiden365.nl/blog)
+aberg (http://drupal.org/user/341657, http://leiden365.nl/blog)
 for Drupal 6, where module development was stopped. Then martin_klima started
 independent module development for Drupal 7 named Hash access as sandbox 
 project. During review process Drupal team recommended build Hash access as 7.x
-development branch of Access unpublished.
+development branch of Access unpublished. 
 
-This module was converted to Backport CMS.
+This module has been converted to Backport CMS.
