@@ -1,8 +1,5 @@
 name = Access Unpublished
 description = Grants access to view unpublished content to anyone who has a unique URL and appropriate permissions.
-package = access
-version = BACKDROP_VERSION
 backdrop = 1.x
+type = module
 configure = admin/config/content/access_unpublished
-
-stylesheets[all][] = css/access_unpublished.css

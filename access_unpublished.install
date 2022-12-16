@@ -2,11 +2,38 @@
 
 /**
  * @file
- * Install, update and uninstall functions for the access unpublished module.
+ * Install, update and uninstall functions for the hash_access module.
  */
 
 /**
- * Implements hook_uninstall().
+ * Implements hook_uninstall().().
  */
 function access_unpublished_uninstall() {
+  config_clear('access_unpublished.settings', 'access_unpublished_url_key');
+  config_clear('access_unpublished.settings', 'access_unpublished_display_link_in_backdrop_message');
+  config_clear('access_unpublished.settings', 'access_unpublished_display_link_in_node_content');
+}
+
+/**
+ * Migrate access_unpublished variables to config.
+ */
+function access_unpublished_update_1000() {
+  $config = config('access_unpublished.settings');
+  $config->set('access_unpublished_url_key', update_variable_get('access_unpublished_url_key', 'hash'));
+  $config->set('access_unpublished_display_link_in_drupal_message', update_variable_get('access_unpublished_display_link_in_drupal_message', '1'));
+  $config->set('access_unpublished_display_link_in_node_content', update_variable_get('access_unpublished_display_link_in_node_content', '1'));
+  $config->set('access_unpublished_display_link_on_node_form', update_variable_get('access_unpublished_display_link_on_node_form', ''));
+  $config->save();
+
+  update_variable_del('access_unpublished_url_key');
+  update_variable_del('access_unpublished_display_link_in_drupal_message');
+  update_variable_del('access_unpublished_display_link_in_node_content');
+  update_variable_del('access_unpublished_display_link_on_node_form');
+}
+
+/**
+ * Implements hook_install().
+ */
+function access_unpublished_install() {
+  // Dynamically generated variable data was detected.
 }

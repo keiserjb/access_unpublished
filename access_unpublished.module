@@ -10,7 +10,7 @@
  */
 
 /**
- * Implements hook_menu().
+ * Implements hook_menu().().
  */
 function access_unpublished_menu() {
   // This provides hash URL parameter setting.
@@ -26,7 +26,7 @@ function access_unpublished_menu() {
 }
 
 /**
- * Implements hook_permission().
+ * Implements hook_permission().().
  */
 function access_unpublished_permission() {
 
@@ -34,6 +34,12 @@ function access_unpublished_permission() {
     'title' => t('View unpublished contents'),
     'description' => t('Allow users to view unpublished contents with unique key in URL path'),
   );
+  if (module_exists('workbench_moderation')) {
+    $permissions['access unpublished view workbench moderation drafts'] = array(
+      'title' => t('View moderated drafts'),
+      'description' => t('Allow users to view workbench moderation drafts with unique key in URL path - also requires "View unpublished contents" permission above'),
+    );
+  }
   $permissions['access unpublished view hashkey'] = array(
     'title' => t('View hash key link to unpublished contents'),
     'description' => t('Allow users to view link with hash key for view unpublished contents'),
@@ -46,75 +52,58 @@ function access_unpublished_permission() {
 }
 
 /**
- * Implements hook_node_view().
+ * Implements hook_node_view().().
  */
 function access_unpublished_node_view($node) {
-  // Test publish and view node status.
   // Only unpublished nodes in full page view are affected.
-  if ($node->status == NODE_NOT_PUBLISHED && node_is_page($node)) {
-
-    // Test user permission.
-    if (user_access('access unpublished view hashkey')) {
-      // Construct URL link.
-      $au_url_key = config_get('access_unpublished.settings', 'access_unpublished_url_key');
-      $au_link = l(t("hashed link"), 'node/' . $node->nid,
-        array(
-          'query' => array(
-            $au_url_key => access_unpublished_get_hash_from_nodeid($node->nid),
-          ),
-          'attributes' => array(
-            // We need a extra class for link with class="active" from l()
-            'class' => array('access_unpublished_link'),
-          ),
-        )
-      );
-      $au_link_text = t("You can use !link to view this unpublished node.",
-        array('!link' => $au_link));
-      if (config_get('access_unpublished.settings', 'access_unpublished_display_link_in_message')) {
-        // Show link in frontend message.
-        backdrop_set_message($au_link_text, 'status');
-      }
-      if (config_get('access_unpublished.settings', 'access_unpublished_display_link_in_node_content')) {
-        // Show link in extra renderable entry in node contents.
-        $node->content['access_unpublished_link'] = array(
-          '#access_unpublished_link' => $au_link_text,
-          '#weight' => 100,
-          '#theme' => 'access_unpublished_link',
-        );
-      }
-    }
+  if (user_access('access unpublished view hashkey') && node_is_page($node)) {
+    _access_unpublished_check_hashed_link($node);
   }
 }
 
 /**
- * Implements hook_node_access().
+ * Implements hook_config_info().
+ */
+function access_unpublished_config_info() {
+  $prefixes['access_unpublished.settings'] = array(
+    'label' => t('Access Unpublished settings'),
+    'group' => t('Configuration'),
+  );
+  return $prefixes;
+}
+
+/**
+ * Implements hook_form_BASE_FORM_ID_alter().().
+ */
+function access_unpublished_form_node_form_alter(&$form, &$form_state, $form_id) {
+  $config = config('access_unpublished.settings');
+  // Optionally show hashed link on node edit form.
+  if (strpos(current_path(), 'node/add') === FALSE
+   && user_access('access unpublished view hashkey')
+   && $config->get('access_unpublished_display_link_on_node_form') === 1
+   && $config->get('access_unpublished_display_link_in_backdrop_message') === 1) {
+    _access_unpublished_check_hashed_link($form['#node']);
+  }
+}
+
+/**
+ * Implements hook_node_access().().
  *
  * Return NODE_ACCESS_ALLOW if url hash matches reference hash.
  * In other cases return NODE_ACCESS_IGNORE to allow other modules
  * or the node_access table to control access.
  */
 function access_unpublished_node_access($node, $op) {
-  if ($op == 'view' && isset($node->nid)
-    && $node->status == NODE_NOT_PUBLISHED) {
+  if ($op == 'view' && isset($node->nid) && $node->status == NODE_NOT_PUBLISHED) {
     // Check user permission.
     if (user_access('access unpublished view unpublished node')) {
-      $au_url_key = config_get('access_unpublished.settings', 'access_unpublished_url_key');
-      // Check hash key in url.
-      $url_query = backdrop_get_query_parameters();
-      if (isset($url_query[$au_url_key])) {
-        $url_hash = $url_query[$au_url_key];
-        // Generate reference hash.
-        $hash = access_unpublished_get_hash_from_nodeid($node->nid);
-        // Check hash match and return access state.
-        if ($url_hash == $hash) {
-          return NODE_ACCESS_ALLOW;
-        }
+      if (_access_unpublished_check_hash($node->nid)) {
+        return NODE_ACCESS_ALLOW;
       }
     }
   }
   return NODE_ACCESS_IGNORE;
 }
-
 
 /**
  * Generate hash from node ID.
@@ -125,30 +114,194 @@ function access_unpublished_node_access($node, $op) {
  * @return string
  *   Base-64 encoded, URL-safe sha-256 hash based on node ID.
  */
-function access_unpublished_get_hash_from_nodeid($nid) {
+function _access_unpublished_get_hash_from_nodeid($nid) {
   return backdrop_hash_base64(backdrop_get_private_key() . $nid);
 }
 
-
 /**
- * Implements hook_theme().
+ * Implements hook_theme().().
  */
 function access_unpublished_theme() {
   return array(
     'access_unpublished_link' => array(
       'variables' => array('access_unpublished_link' => NULL),
-      'template' => 'templates/access-unpublished-link',
+      'template' => 'access-unpublished-link',
     ),
   );
 }
 
 /**
- * Implements hook_config_info().
+ * Implements hook_workbench_moderation_access_alter().().
+ *
+ * Return $access = TRUE if a node has an active revision and url hash matches reference hash.
  */
-function access_unpublished_config_info() {
-  $prefixes['access_unpublished.settings'] = array(
-    'label' => t('Access Unpublished Settings'),
-    'group' => t('Configuration'),
+function access_unpublished_workbench_moderation_access_alter(&$access, $op, $node) {
+  // Check user permission
+  if (user_access('access unpublished view workbench moderation drafts')) {
+    // Check that we are viewing a draft
+    if ($node->workbench_moderation['current']->is_current == 1
+     && $node->workbench_moderation['current']->published == '0') {
+      if (_access_unpublished_check_hash($node->nid)) {
+        $access = TRUE;
+      }
+    }
+  }
+}
+
+/**
+ * Implements menu_local_tasks_alter().
+ */
+function access_unpublished_menu_local_tasks_alter(&$data, $router_item, $root_path) {
+  // Do we need to bother doing anything?
+  if (empty($data['tabs'][0]['output'])) {
+    return;
+  }
+
+  if (user_is_anonymous()) {
+    if (isset($data['tabs'])) {
+      //We do not want the anonymous account to see the workbench tabs when looking at a draft page.
+      unset($data['tabs'][0]['output']);
+      //To avoid core from throwing a notice when it looks for output, set it to an empty array.
+      $data['tabs'][0]['output'] = array();
+    }
+  }
+}
+
+/**
+ * Check whether a hash is present in the current URL, and if so, verify
+ * that the hash is correct.
+ *
+ * @param int
+ *   The node id to check.
+ *
+ * @return boolean
+ *   TRUE if the hash is present and correct, otherwise FALSE.
+ */
+function _access_unpublished_check_hash($nid) {
+  $au_url_key = config_get('access_unpublished.settings', 'access_unpublished_url_key');
+
+  // Check hash key in url.
+  $url_query = backdrop_get_query_parameters();
+  if (isset($url_query[$au_url_key])) {
+    $url_hash = $url_query[$au_url_key];
+
+    // Generate reference hash.
+    $hash = _access_unpublished_get_hash_from_nodeid($nid);
+
+    // Check hash match and return access state.
+    if ($url_hash == $hash) {
+      return TRUE;
+    }
+  }
+}
+
+/**
+ * Helper function to determine whether to display a hashed link and if so,
+ * determine its format.
+ *
+ * @param object $node
+ *   The node being viewed or edited.
+ */
+function _access_unpublished_check_hashed_link($node) {
+  if (module_exists('workbench_moderation')
+   && workbench_moderation_node_type_moderated($node->type)) {
+    // Check for workbench_moderation status first, as this
+    // overrides the basic published/unpublished check.
+    $wb_unpublished = FALSE;
+    $wb_revision = FALSE;
+    $draft_path = FALSE;
+
+    if (!isset($node->workbench_moderation['published'])) {
+      $wb_unpublished = TRUE;
+    }
+    else {
+      $urlseg = explode('/', current_path());
+      if (isset($urlseg[2])) {
+        switch ($urlseg[2]) {
+          case 'draft':
+            $draft_path = true;
+            break;
+        }
+      }
+    }
+    if ($node->workbench_moderation['current']->is_current == 1
+     && $node->workbench_moderation['current']->published == '0') {
+      $wb_revision = TRUE;
+    }
+
+    if ($wb_unpublished && $wb_revision) {
+      // We have a node that only exists as a draft, so we can't count on the
+      // node/%/draft URL pattern in this case.
+      _access_unpublished_show_hashed_link('node/' . $node->nid, $node);
+    }
+    else if (!$wb_unpublished && $wb_revision && $draft_path) {
+      // We have a draft revision of a published node, so we use the
+      // node/%/draft URL pattern in this case.
+      _access_unpublished_show_hashed_link('node/' . $node->nid . '/draft', $node);
+    }
+    else if ($node->status == NODE_NOT_PUBLISHED && !$wb_unpublished) {
+      _access_unpublished_show_hashed_link('node/' . $node->nid, $node);
+    }
+  }
+  else if ($node->status == NODE_NOT_PUBLISHED) {
+    // Either workbench_moderation is not installed or we have an un-moderated
+    // content type.
+    _access_unpublished_show_hashed_link('node/' . $node->nid, $node);
+  }
+}
+
+/**
+ * Display the hashed link to the end user.
+ *
+ * @param string
+ *   The original URL
+ * @param $node
+ *   The node being displayed, passed by reference
+ */
+function _access_unpublished_show_hashed_link($url, &$node) {
+  $config = config('access_unpublished.settings');
+  // Add css for access_unpublished.
+  $module_path = backdrop_get_path('module', 'access_unpublished');
+  backdrop_add_css($module_path . '/css/access_unpublished.css');
+  // Construct URL link.
+  $au_url_key = $config->get('access_unpublished_url_key');
+  $au_link = l(t("hashed link"), $url, 
+    array(
+    'query' => array($au_url_key => _access_unpublished_get_hash_from_nodeid($node->nid)),
+    'attributes' => array('class' => array('access_unpublished_link')),
+  )
   );
-  return $prefixes;
+  $au_link_text = t("You can use !link to view this unpublished content.", array('!link' => $au_link));
+
+  if ($config->get('access_unpublished_display_link_in_backdrop_message')) {
+    // Show link in Backdrop message. Avoid duplicates produced by an active
+    // class that might be set on an existing message which are not caught
+    // by backdrop_set_message(). This edge case can be triggered if e.g.
+    // the main site theme does not display backdrop messages but the admin
+    // theme does and the site is configured to show hash links on the node
+    // edit page; in this case, viewing the node and then editing its draft
+    // will produce duplicate messages on the node edit form.
+    $messages = backdrop_get_messages('status');
+    if (!empty($messages['status'])) {
+      foreach ($messages['status'] as $message) {
+        if (strpos($message, 'access_unpublished_link') === FALSE) {
+          // backdrop_get_messages() above clears all status messages by default,
+          // including any possible duplicates. Add back any status messages
+          // from other modules we'd like to keep here.
+          backdrop_set_message($message, 'status', FALSE);
+        }
+      }
+    }
+
+    backdrop_set_message($au_link_text, 'status', FALSE);
+  }
+
+  if ($config->get('access_unpublished_display_link_in_node_content')) {
+    // Show link in extra renderable entry in node contents.
+    $node->content['access_unpublished_link'] = array(
+      '#access_unpublished_link' => $au_link_text,
+      '#weight' => 100,
+      '#theme' => 'access_unpublished_link',
+    );
+  }
 }
